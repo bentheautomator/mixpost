@@ -21,6 +21,10 @@ abstract class SocialProvider implements SocialProviderContract
     // In case of `false` value, `getEntities()` method is required.
     public bool $onlyUserAccount = true;
 
+    // Whether this provider uses the OAuth 2.0 `state` parameter for CSRF protection.
+    // OAuth 1.0a providers (e.g. Twitter) bind the request via the token secret instead.
+    public bool $usesOAuthState = false;
+
     public array $callbackResponseKeys = [];
 
     protected array $accessToken = [];
@@ -36,6 +40,8 @@ abstract class SocialProvider implements SocialProviderContract
     protected array $values = [];
 
     const ACCESS_TOKEN_SESSION_NAME = 'mixpost_provider_access_token';
+
+    const OAUTH_STATE_SESSION_NAME = 'mixpost_provider_oauth_state';
 
     public function __construct(Request $request, string $clientId, string $clientSecret, string $redirectUrl, array $values = [])
     {
@@ -126,6 +132,29 @@ abstract class SocialProvider implements SocialProviderContract
         if ($account = Account::find($this->values['account_id'])) {
             $account->updateAccessToken($accessToken);
         }
+    }
+
+    // Generate a random OAuth `state`, persist it in the session and return it so it
+    // can be appended to the authorization URL.
+    public function generateOAuthState(): string
+    {
+        $state = Str::random(40);
+
+        $this->request->session()->put(self::OAUTH_STATE_SESSION_NAME, $state);
+
+        return $state;
+    }
+
+    // Validate the `state` returned on the OAuth callback against the value stored in
+    // the session. The stored value is consumed (pulled) so it cannot be replayed.
+    public function validateOAuthState(): bool
+    {
+        $expected = $this->request->session()->pull(self::OAUTH_STATE_SESSION_NAME);
+        $provided = $this->request->get('state');
+
+        return is_string($expected) && $expected !== ''
+            && is_string($provided)
+            && hash_equals($expected, $provided);
     }
 
     public function getHttpClient(): Http

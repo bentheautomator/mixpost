@@ -22,6 +22,8 @@ class MetaProvider extends SocialProvider
 
     public array $callbackResponseKeys = ['code'];
 
+    public bool $usesOAuthState = true;
+
     protected string $apiVersion;
 
     protected string $apiUrl = 'https://graph.facebook.com';

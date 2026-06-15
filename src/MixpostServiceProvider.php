@@ -40,6 +40,7 @@ class MixpostServiceProvider extends PackageServiceProvider
             ->hasRoute('web')
             ->hasMigrations([
                 'create_mixpost_tables',
+                'purge_facebook_group_accounts',
             ])
             ->hasCommands([
                 PublishAssetsCommand::class,

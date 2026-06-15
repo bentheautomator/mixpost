@@ -199,6 +199,26 @@ class ServiceManager
         }, []);
     }
 
+    // Like all(), but blanks out secret form attributes so they are never serialized to
+    // the browser. Use this for any payload that leaves the server (e.g. Services page).
+    public function allMasked(): array
+    {
+        return array_reduce($this->services()->getCollection(), function ($array, $service) {
+            $name = $service['name'];
+            $payload = $this->get($name);
+
+            foreach ($this->getServiceClass($name)::$secretFormAttributes as $secret) {
+                if (! empty($payload['configuration'][$secret] ?? null)) {
+                    $payload['configuration'][$secret] = '';
+                }
+            }
+
+            $array[$name] = $payload;
+
+            return $array;
+        }, []);
+    }
+
     public function getFromCache(string $name, mixed $default = null)
     {
         return Cache::get($this->resolveCacheKey($name), $default);

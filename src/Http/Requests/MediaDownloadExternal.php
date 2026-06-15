@@ -51,7 +51,22 @@ class MediaDownloadExternal extends FormRequest
     public function handle(): Collection
     {
         return collect($this->input('items'))->map(function ($item) {
-            $result = Http::get($item['url']);
+            // The initial URL is validated in rules(), but HTTP redirects can still point
+            // at an internal host. Validate every redirect hop and cap the chain so a
+            // public URL cannot 30x-redirect into the private network / metadata.
+            $result = Http::withOptions([
+                'allow_redirects' => [
+                    'max' => 5,
+                    'strict' => true,
+                    'referer' => false,
+                    'protocols' => ['http', 'https'],
+                    'on_redirect' => function ($request, $response, $uri) {
+                        if (! Util::isPublicDomainUrl((string) $uri)) {
+                            throw new \RuntimeException('Redirect to a non-public URL is not allowed.');
+                        }
+                    },
+                ],
+            ])->get($item['url']);
 
             $now = now()->format('m-Y');
 

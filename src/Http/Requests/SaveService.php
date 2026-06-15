@@ -15,9 +15,20 @@ class SaveService extends FormRequest
             'active' => ['required', 'boolean'],
         ];
 
+        $name = $this->route('service');
+        $secrets = $this->service()::$secretFormAttributes;
+
         $formRules = $this->service()::formRules();
-        $modifiedFormRules = array_reduce(array_keys($formRules), function ($carry, $key) use ($formRules) {
-            $carry["configuration.$key"] = $formRules[$key];
+        $modifiedFormRules = array_reduce(array_keys($formRules), function ($carry, $key) use ($formRules, $name, $secrets) {
+            $rule = $formRules[$key];
+
+            // Secret attributes are write-only: once stored they may be submitted blank
+            // to keep the current value, so they must not be `required` on update.
+            if (in_array($key, $secrets, true) && ! empty(ServiceManager::get($name, "configuration.$key"))) {
+                $rule = ['nullable'];
+            }
+
+            $carry["configuration.$key"] = $rule;
 
             return $carry;
         }, []);
@@ -30,8 +41,18 @@ class SaveService extends FormRequest
 
     public function handle(): void
     {
-        $configuration = Arr::map($this->service()::form(), function ($_, $key) {
-            return $this->input("configuration.$key");
+        $name = $this->route('service');
+        $secrets = $this->service()::$secretFormAttributes;
+
+        $configuration = Arr::map($this->service()::form(), function ($_, $key) use ($name, $secrets) {
+            $input = $this->input("configuration.$key");
+
+            // Keep the currently stored secret when the write-only field is left blank.
+            if (in_array($key, $secrets, true) && ($input === null || $input === '')) {
+                return ServiceManager::get($name, "configuration.$key");
+            }
+
+            return $input;
         });
 
         (new UpdateOrCreateService)(

@@ -11,6 +11,7 @@ trait ManagesFacebookOAuth
             'redirect_uri' => $this->redirectUrl,
             'scope' => $this->scope,
             'response_type' => 'code',
+            'state' => $this->generateOAuthState(),
         ];
 
         $url = 'https://www.facebook.com/'.$this->apiVersion.'/dialog/oauth';

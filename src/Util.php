@@ -54,27 +54,92 @@ class Util
 
     public static function isPublicDomainUrl(string $url): bool
     {
+        // Validate URL format
+        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+            return false;
+        }
+
         $parsedUrl = parse_url($url);
 
         if (empty($parsedUrl['host'])) {
             return false;
         }
 
-        // Validate URL format
-        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+        // Only http/https are allowed (blocks file://, gopher://, ftp://, etc.).
+        $scheme = strtolower($parsedUrl['scheme'] ?? '');
+
+        if (! in_array($scheme, ['http', 'https'], true)) {
             return false;
         }
 
-        // Check if the host part is an IP address (both IPv4 and IPv6)
-        if (filter_var($parsedUrl['host'], FILTER_VALIDATE_IP)) {
+        // Normalise the host (strip IPv6 brackets, lowercase).
+        $host = strtolower(trim($parsedUrl['host'], '[]'));
+
+        // Explicitly block well-known local hostnames and unspecified addresses.
+        if (in_array($host, ['localhost', '0.0.0.0', '0', '::', '::1'], true)) {
             return false;
         }
 
-        if (in_array($parsedUrl['host'], ['localhost', '127.0.0.1', '::1'])) {
-            return false;
+        // Resolve the host to every IP it points at and reject if ANY of them is
+        // private/reserved. This prevents SSRF via hostnames that resolve to internal
+        // hosts or the cloud metadata endpoint (e.g. 169.254.169.254). Hosts that do
+        // not resolve at all are allowed here — the subsequent connection simply fails,
+        // and a hostname pointing at a private IP is still caught below.
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ips = [$host];
+        } else {
+            $ips = self::resolveHostIps($host);
+        }
+
+        foreach ($ips as $ip) {
+            if (! self::isPublicIp($ip)) {
+                return false;
+            }
         }
 
         return true;
+    }
+
+    /**
+     * Resolve a hostname to its IPv4 and IPv6 addresses.
+     *
+     * @return array<int, string>
+     */
+    protected static function resolveHostIps(string $host): array
+    {
+        $ips = [];
+
+        $ipv4 = @gethostbynamel($host);
+
+        if (is_array($ipv4)) {
+            $ips = array_merge($ips, $ipv4);
+        }
+
+        $records = @dns_get_record($host, DNS_AAAA);
+
+        if (is_array($records)) {
+            foreach ($records as $record) {
+                if (! empty($record['ipv6'])) {
+                    $ips[] = $record['ipv6'];
+                }
+            }
+        }
+
+        return array_values(array_unique($ips));
+    }
+
+    /**
+     * Determine whether an IP address is a routable, public address.
+     * Private (RFC1918) and reserved ranges (loopback, link-local incl. the
+     * 169.254.169.254 metadata address, etc.) are rejected.
+     */
+    protected static function isPublicIp(string $ip): bool
+    {
+        return filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        ) !== false;
     }
 
     public static function getDatabaseDriver(?string $connection = null): string

@@ -19,6 +19,8 @@ class MastodonProvider extends SocialProvider
 
     public array $callbackResponseKeys = ['code'];
 
+    public bool $usesOAuthState = true;
+
     protected string $apiVersion = 'v1';
 
     protected string $serverUrl;

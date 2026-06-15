@@ -8,6 +8,8 @@ use Inovector\Mixpost\Enums\ServiceGroup;
 
 class FacebookService extends Service
 {
+    public static array $secretFormAttributes = ['client_secret'];
+
     public static function group(): ServiceGroup
     {
         return ServiceGroup::SOCIAL;

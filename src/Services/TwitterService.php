@@ -10,6 +10,8 @@ class TwitterService extends Service
 {
     public static array $exposedFormAttributes = ['tier'];
 
+    public static array $secretFormAttributes = ['client_secret'];
+
     public static function group(): ServiceGroup
     {
         return ServiceGroup::SOCIAL;

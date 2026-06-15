@@ -19,6 +19,14 @@ abstract class Service implements ServiceContract
     public static array $exposedFormAttributes = [];
 
     /**
+     * The form attributes that hold secrets. These are never sent back to the browser
+     * and may be left blank on update to keep the currently stored value (write-only).
+     *
+     * @return array
+     */
+    public static array $secretFormAttributes = [];
+
+    /**
      * Group name of the service.
      * Should be one of the values from ServiceGroup enum.
      */

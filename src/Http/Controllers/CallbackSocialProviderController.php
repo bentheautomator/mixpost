@@ -23,6 +23,13 @@ class CallbackSocialProviderController extends Controller
             return redirect()->route('mixpost.accounts.index')->with('error', $error);
         }
 
+        // Protect the OAuth 2.0 callback against CSRF / authorization-code injection by
+        // verifying the `state` nonce we issued when building the authorization URL.
+        if ($provider->usesOAuthState && ! $provider->validateOAuthState()) {
+            return redirect()->route('mixpost.accounts.index')
+                ->with('error', 'Invalid authentication state. Please try connecting the account again.');
+        }
+
         if (! $provider->isOnlyUserAccount()) {
             return redirect()->route('mixpost.accounts.entities.index', ['provider' => $providerName])
                 ->with('mixpost_callback_response', $provider->getCallbackResponse());

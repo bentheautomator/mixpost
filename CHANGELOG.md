@@ -2,6 +2,20 @@
 
 All notable changes to `mixpost` will be documented in this file.
 
+## Unreleased - Security hardening
+
+**Security**
+
+- Hardened the external media download SSRF guard (`Util::isPublicDomainUrl`) to resolve DNS and reject private/reserved IP ranges (incl. the `169.254.169.254` cloud metadata address), restrict schemes to http/https, and validate every HTTP redirect hop.
+- Added OAuth 2.0 `state` (CSRF) protection to the Facebook and Mastodon connection flows, validated on the callback.
+- Made third-party app `client_secret` values write-only — they are no longer sent to the browser and can be left blank on update to keep the stored value.
+- Stopped logging the full job payload on social-provider job failure and redact secret-bearing keys from the logged response context.
+- The encrypted attribute cast now fails soft on `DecryptException` (e.g. after an `APP_KEY` rotation) instead of throwing.
+
+**Changed**
+
+- Added a migration that purges any leftover deprecated `facebook_group` accounts and their related rows.
+
 ## 2.6.0 - 2026-03-16
 
 **Added**

@@ -72,7 +72,7 @@ test('display reports', function () {
             expect($audienceResult['values'][$index])->toBeNull();
         }
     }
-});
+})->skip(fn () => ! \Inovector\Mixpost\Util::isMysqlDatabase(), 'Reports query uses JSON_SEARCH (MySQL only).');
 
 it('can show validation on getting reports', function () {
     $this->actingAs(test()->user);

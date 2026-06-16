@@ -1,0 +1,52 @@
+name: security
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Weekly, so newly-disclosed advisories are caught even without a push.
+    - cron: '0 6 * * 1'
+
+jobs:
+  composer-audit:
+    runs-on: ubuntu-latest
+    name: composer audit
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+        env:
+          COMPOSER_ROOT_VERSION: dev-main
+        with:
+          composer-options: "--prefer-dist --no-interaction"
+
+      - name: Audit composer dependencies
+        run: composer audit
+
+  npm-audit:
+    runs-on: ubuntu-latest
+    name: npm audit
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high

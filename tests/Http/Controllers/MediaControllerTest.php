@@ -29,4 +29,4 @@ it('will delete media file', function () {
 
     $this->filesystem()->assertMissing($media->path);
     $this->filesystem()->assertMissing($media->getConversion('thumb')['path']);
-});
+})->skip(fn () => ! \Inovector\Mixpost\Util::isMysqlDatabase(), 'Checks media usage via JSON_SEARCH (MySQL only).');

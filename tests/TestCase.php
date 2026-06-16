@@ -84,7 +84,11 @@ class TestCase extends Orchestra
 
     public function getEnvironmentSetUp($app)
     {
-        config()->set('database.default', 'mysql');
+        // Default to MySQL (used in CI), but allow running the suite on SQLite locally
+        // with `DB_CONNECTION=sqlite vendor/bin/pest`.
+        $connection = env('DB_CONNECTION', 'mysql');
+
+        config()->set('database.default', $connection);
 
         config()->set('database.connections.mysql', [
             'driver' => 'mysql',
@@ -96,6 +100,13 @@ class TestCase extends Orchestra
             'prefix' => '',
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
+        ]);
+
+        config()->set('database.connections.sqlite', [
+            'driver' => 'sqlite',
+            'database' => ':memory:',
+            'prefix' => '',
+            'foreign_key_constraints' => true,
         ]);
 
         config()->set('mixpost.disk', 'mixpost_test');

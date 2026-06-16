@@ -15,4 +15,4 @@ it('will process metrics for service providers', function () {
     $this->processQueuedJobs();
 
     expect(Metric::count() > 0)->toBeTrue();
-});
+})->skip(fn () => ! \Inovector\Mixpost\Util::isMysqlDatabase(), 'Uses a MySQL upsert (ON CONFLICT).');

@@ -14,6 +14,7 @@ use Inovector\Mixpost\Commands\ImportAccountData;
 use Inovector\Mixpost\Commands\ProcessMetrics;
 use Inovector\Mixpost\Commands\PruneTemporaryDirectory;
 use Inovector\Mixpost\Commands\PublishAssetsCommand;
+use Inovector\Mixpost\Commands\ReencryptCredentials;
 use Inovector\Mixpost\Commands\RefreshAccountTokens;
 use Inovector\Mixpost\Commands\RunScheduledPosts;
 use Inovector\Mixpost\Events\AccountAdded;
@@ -55,6 +56,7 @@ class MixpostServiceProvider extends PackageServiceProvider
                 DeleteOldData::class,
                 PruneTemporaryDirectory::class,
                 RefreshAccountTokens::class,
+                ReencryptCredentials::class,
             ])->hasInstallCommand(function (InstallCommand $command) {
                 $command
                     ->startWith(function (InstallCommand $command) {

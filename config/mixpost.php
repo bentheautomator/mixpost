@@ -17,6 +17,14 @@ return [
     'redirect_unauthorized_users_to_route' => 'login',
 
     /*
+     * Multi-tenant mode. When enabled, accounts, posts, tags and media are owned by
+     * and scoped to the authenticated user, so users only see their own data. When
+     * disabled (default), Mixpost behaves as a single-tenant install where every
+     * authenticated user shares the same data.
+     */
+    'multi_tenant' => env('MIXPOST_MULTI_TENANT', false),
+
+    /*
      * The disk on which to store added files.
      * Choose one or more of the disks you've configured in config/filesystems.php.
      */

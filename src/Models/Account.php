@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Inovector\Mixpost\Casts\AccountMediaCast;
 use Inovector\Mixpost\Casts\EncryptArrayObject;
+use Inovector\Mixpost\Concerns\Model\BelongsToOwner;
 use Inovector\Mixpost\Concerns\Model\HasUuid;
 use Inovector\Mixpost\Events\AccountUnauthorized;
 use Inovector\Mixpost\Facades\SocialProviderManager;
@@ -15,6 +16,7 @@ use Inovector\Mixpost\Support\SocialProviderPostConfigs;
 
 class Account extends Model
 {
+    use BelongsToOwner;
     use HasFactory;
     use HasUuid;
 

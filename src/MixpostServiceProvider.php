@@ -44,6 +44,7 @@ class MixpostServiceProvider extends PackageServiceProvider
             ->hasMigrations([
                 'create_mixpost_tables',
                 'purge_facebook_group_accounts',
+                'add_owner_to_mixpost_tables',
             ])
             ->hasCommands([
                 PublishAssetsCommand::class,

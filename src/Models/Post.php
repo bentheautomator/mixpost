@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Inovector\Mixpost\Concerns\Model\BelongsToOwner;
 use Inovector\Mixpost\Concerns\Model\HasUuid;
 use Inovector\Mixpost\Enums\PostScheduleStatus;
 use Inovector\Mixpost\Enums\PostStatus;
@@ -16,6 +17,7 @@ use Inovector\Mixpost\Support\SocialProviderResponse;
 
 class Post extends Model
 {
+    use BelongsToOwner;
     use HasFactory;
     use HasUuid;
 

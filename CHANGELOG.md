@@ -7,6 +7,16 @@ All notable changes to `mixpost` will be documented in this file.
 **Added**
 
 - Facebook long-lived access tokens are now auto-refreshed before they expire via a scheduled `mixpost:refresh-tokens` command (the previous refresh helpers were never wired up). A failed refresh never overwrites a valid token, and an invalid-token error marks the account for reconnection.
+- `mixpost:import-posts` command to bulk import and schedule posts from a CSV (`content`, `scheduled_at`, `accounts`, optional `tags`).
+- Optional multi-tenant mode (`MIXPOST_MULTI_TENANT`): when enabled, accounts, posts, tags and media are owned by and scoped to the authenticated user. Disabled by default (single-tenant), with no effect on background/queue processing.
+- `mixpost:reencrypt-credentials` command to safely rotate `APP_KEY` by re-encrypting stored account tokens and service credentials.
+- CI security scanning (`composer audit`, `npm audit`) and Dependabot configuration.
+
+**Changed**
+
+- Recurring schedule commands now run `withoutOverlapping()` so a slow tick cannot pile up on the next minute.
+- The test database is configurable (`DB_CONNECTION`); the suite can run on SQLite locally.
+- Expanded `.env.example` with the full set of supported environment variables.
 
 **Security**
 

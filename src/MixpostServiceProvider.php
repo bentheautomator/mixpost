@@ -11,6 +11,7 @@ use Inovector\Mixpost\Commands\CreateMastodonApp;
 use Inovector\Mixpost\Commands\DeleteOldData;
 use Inovector\Mixpost\Commands\ImportAccountAudience;
 use Inovector\Mixpost\Commands\ImportAccountData;
+use Inovector\Mixpost\Commands\ImportPosts;
 use Inovector\Mixpost\Commands\ProcessMetrics;
 use Inovector\Mixpost\Commands\PruneTemporaryDirectory;
 use Inovector\Mixpost\Commands\PublishAssetsCommand;
@@ -57,6 +58,7 @@ class MixpostServiceProvider extends PackageServiceProvider
                 PruneTemporaryDirectory::class,
                 RefreshAccountTokens::class,
                 ReencryptCredentials::class,
+                ImportPosts::class,
             ])->hasInstallCommand(function (InstallCommand $command) {
                 $command
                     ->startWith(function (InstallCommand $command) {

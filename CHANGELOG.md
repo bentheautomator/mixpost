@@ -4,6 +4,10 @@ All notable changes to `mixpost` will be documented in this file.
 
 ## Unreleased - Security hardening
 
+**Added**
+
+- Facebook long-lived access tokens are now auto-refreshed before they expire via a scheduled `mixpost:refresh-tokens` command (the previous refresh helpers were never wired up). A failed refresh never overwrites a valid token, and an invalid-token error marks the account for reconnection.
+
 **Security**
 
 - Hardened the external media download SSRF guard (`Util::isPublicDomainUrl`) to resolve DNS and reject private/reserved IP ranges (incl. the `169.254.169.254` cloud metadata address), restrict schemes to http/https, and validate every HTTP redirect hop.

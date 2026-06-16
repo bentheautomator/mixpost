@@ -145,4 +145,10 @@ class Account extends Model
         $this->authorized = true;
         $this->save();
     }
+
+    public function updateAccessToken(array $token): void
+    {
+        $this->access_token = $token;
+        $this->save();
+    }
 }

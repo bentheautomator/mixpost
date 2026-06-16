@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, onUnmounted, ref, watch} from "vue";
 import {Head} from '@inertiajs/vue3';
-import {router} from "@inertiajs/vue3";
+import {router, useForm} from "@inertiajs/vue3";
 import emitter from "@/Services/emitter";
 import useNotifications from "@/Composables/useNotifications";
 import {cloneDeep, pickBy, throttle} from "lodash";
@@ -16,8 +16,11 @@ import Table from "@/Components/DataDisplay/Table.vue";
 import TableRow from "@/Components/DataDisplay/TableRow.vue";
 import TableCell from "@/Components/DataDisplay/TableCell.vue";
 import SecondaryButton from "@/Components/Button/SecondaryButton.vue";
+import PrimaryButton from "@/Components/Button/PrimaryButton.vue";
 import PureDangerButton from "@/Components/Button/PureDangerButton.vue";
 import DangerButton from "@/Components/Button/DangerButton.vue"
+import Modal from "@/Components/Modal/Modal.vue";
+import InputError from "@/Components/Form/InputError.vue";
 import PostItem from "@/Components/Post/PostItem.vue";
 import SelectableBar from "@/Components/DataDisplay/SelectableBar.vue";
 import ConfirmationModal from "@/Components/Modal/ConfirmationModal.vue";
@@ -84,6 +87,46 @@ watch(() => props.posts.data, () => {
 const {notify} = useNotifications();
 const confirmationDeletion = ref(false);
 
+const importModal = ref(false);
+const importForm = useForm({
+    file: null
+});
+
+const onImportFileChange = (event) => {
+    importForm.file = event.target.files[0] || null;
+};
+
+const submitImport = () => {
+    importForm.post(route('mixpost.posts.import'), {
+        forceFormData: true,
+        preserveScroll: true,
+        onSuccess(page) {
+            importModal.value = false;
+            importForm.reset();
+
+            if (page.props.flash.error) {
+                notify('error', page.props.flash.error);
+
+                return;
+            }
+
+            notify('success', page.props.flash.success);
+
+            router.reload({only: ['posts']});
+        }
+    });
+};
+
+const closeImportModal = () => {
+    if (importForm.processing) {
+        return;
+    }
+
+    importModal.value = false;
+    importForm.reset();
+    importForm.clearErrors();
+};
+
 const deletePosts = () => {
     router.delete(route('mixpost.posts.multipleDelete'), {
         data: {
@@ -106,6 +149,7 @@ const deletePosts = () => {
     <div class="row-py mb-2xl">
         <PageHeader title="Posts">
             <PostsFilter v-model="filter" class="ml-2"/>
+            <SecondaryButton @click="importModal = true" class="ml-2">Import CSV</SecondaryButton>
         </PageHeader>
 
         <div class="w-full row-px">
@@ -175,4 +219,35 @@ const deletePosts = () => {
             <DangerButton @click="deletePosts">Delete</DangerButton>
         </template>
     </ConfirmationModal>
+
+    <Modal :show="importModal" :closeable="true" @close="closeImportModal">
+        <div class="p-lg">
+            <div class="text-lg font-medium">Import posts from CSV</div>
+
+            <p class="mt-xs text-stone-800">
+                The file must have a header row with the columns
+                <span class="font-mono text-sm">content</span>,
+                <span class="font-mono text-sm">scheduled_at</span> and
+                <span class="font-mono text-sm">accounts</span>
+                (an optional <span class="font-mono text-sm">tags</span> column is supported).
+                Use account/tag ids separated by <span class="font-mono text-sm">|</span>.
+                Rows with a future <span class="font-mono text-sm">scheduled_at</span> are scheduled; the rest import as drafts.
+            </p>
+
+            <div class="mt-lg">
+                <input type="file"
+                       accept=".csv,text/csv,text/plain"
+                       @change="onImportFileChange"
+                       class="block w-full text-sm"/>
+                <InputError :message="importForm.errors.file" class="mt-xs"/>
+            </div>
+
+            <div class="mt-lg flex justify-end">
+                <SecondaryButton @click="closeImportModal" :disabled="importForm.processing" class="mr-xs">Cancel</SecondaryButton>
+                <PrimaryButton @click="submitImport" :is-loading="importForm.processing"
+                               :disabled="importForm.processing || !importForm.file">Import
+                </PrimaryButton>
+            </div>
+        </div>
+    </Modal>
 </template>

@@ -13,6 +13,7 @@ import AddFacebookPage from "@/Components/Account/AddFacebookPage.vue"
 import AddMastodonAccount from "@/Components/Account/AddMastodonAccount.vue"
 import SecondaryButton from "@/Components/Button/SecondaryButton.vue"
 import DangerButton from "@/Components/Button/DangerButton.vue"
+import WarningButton from "@/Components/Button/WarningButton.vue"
 import Dropdown from "@/Components/Dropdown/Dropdown.vue"
 import DropdownItem from "@/Components/Dropdown/DropdownItem.vue"
 import PlusIcon from "@/Icons/Plus.vue";
@@ -41,6 +42,18 @@ const updateAccount = (accountId) => {
             notify('success', 'The account has been refreshed');
         }
     });
+}
+
+const reconnect = (account) => {
+    // Mastodon needs its server, so reuse the full add-account flow.
+    if (account.provider === 'mastodon') {
+        addAccountModal.value = true;
+
+        return;
+    }
+
+    // Re-run the provider OAuth flow to obtain a fresh token for this account.
+    router.post(route('mixpost.accounts.add', {provider: account.provider}));
 }
 
 const deleteAccount = () => {
@@ -133,6 +146,11 @@ const closeConfirmationAccountDeletion = () => {
                             </div>
                             <div class="mt-sm font-medium text-center break-words">{{ account.name }}</div>
                             <div class="mt-1 text-center text-stone-800">Added: {{ account.created_at }}</div>
+
+                            <div v-if="!account.authorized" class="mt-sm flex flex-col items-center">
+                                <span class="text-sm text-red-500">Reconnection required</span>
+                                <WarningButton size="sm" class="mt-xs" @click="reconnect(account)">Reconnect</WarningButton>
+                            </div>
                         </div>
                     </Panel>
                 </template>

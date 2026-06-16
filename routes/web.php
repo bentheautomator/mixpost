@@ -13,6 +13,7 @@ use Inovector\Mixpost\Http\Controllers\CreateMastodonAppController;
 use Inovector\Mixpost\Http\Controllers\DashboardController;
 use Inovector\Mixpost\Http\Controllers\DeletePostsController;
 use Inovector\Mixpost\Http\Controllers\DuplicatePostController;
+use Inovector\Mixpost\Http\Controllers\ImportPostsController;
 use Inovector\Mixpost\Http\Controllers\MediaController;
 use Inovector\Mixpost\Http\Controllers\MediaDownloadExternalController;
 use Inovector\Mixpost\Http\Controllers\MediaFetchGifsController;
@@ -65,6 +66,7 @@ Route::middleware([
             Route::put('{post}', [PostsController::class, 'update'])->name('update');
             Route::delete('{post}', [PostsController::class, 'destroy'])->name('delete');
 
+            Route::post('import', ImportPostsController::class)->name('import');
             Route::post('schedule/{post}', SchedulePostController::class)->name('schedule');
             Route::post('duplicate/{post}', DuplicatePostController::class)->name('duplicate');
             Route::delete('/', DeletePostsController::class)->name('multipleDelete');
